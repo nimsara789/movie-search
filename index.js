@@ -1,37 +1,38 @@
 function search() {
-    console.log("search");
-
-    let inputTag = document.getElementById("input");
-    let movieName = inputTag.value.trim();
+    const movieName = document.getElementById("input").value.trim();
+    const message = document.getElementById("message");
+    const movieCard = document.getElementById("movie-card");
 
     if (!movieName) {
-        alert("Please enter a movie name.");
+        message.textContent = "Please enter a movie name.";
+        movieCard.style.display = "none";
         return;
     }
 
-    let httpRequest = new XMLHttpRequest();
-    let url = "https://www.omdbapi.com/?apikey=5be20f0a&t=" + encodeURIComponent(movieName);
+    const url = "https://www.omdbapi.com/?apikey=5be20f0a&t=" + encodeURIComponent(movieName);
 
-    httpRequest.open("GET", url);
-    httpRequest.responseType = "json";
-    httpRequest.send();
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.Response === "False") {
+                message.textContent = "Movie not found!";
+                movieCard.style.display = "none";
+                return;
+            }
 
-    httpRequest.onload = () => {
-        let response = httpRequest.response;
-        console.log(response);
-
-        if (response.Response === "False") {
-            alert("Movie not found!");
-            return;
-        }
-
-        document.getElementById("poster").src = response.Poster;
-        document.getElementById("poster").style.display = response.Poster !== "N/A" ? "block" : "none";
-
-        document.getElementById("title").innerHTML = response.Title;
-        document.getElementById("plot").innerHTML = response.Plot;
-        document.getElementById("year").innerHTML = `Year: ${response.Year}`;
-        document.getElementById("genre").innerHTML = `Genre: ${response.Genre}`;
-        document.getElementById("director").innerHTML = `Director: ${response.Director}`;
-    };
+            message.textContent = "";
+            movieCard.style.display = "block";
+            document.getElementById("poster").src = data.Poster;
+            document.getElementById("title").textContent = data.Title;
+            document.getElementById("year").textContent = "Year: " + data.Year;
+            document.getElementById("genre").textContent = "Genre: " + data.Genre;
+            document.getElementById("plot").textContent = data.Plot;
+            document.getElementById("director").textContent = "Director: " + data.Director;
+        })
+        .catch(error => {
+            console.error(error);
+            message.textContent = "Error fetching data. Please try again.";
+            movieCard.style.display = "none";
+        });
 }
